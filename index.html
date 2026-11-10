@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CanchaVerde - Canchas en Buenos Aires</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #f6faf6; }
+    /* Scrollbars con riel gris de extremos circulares y píldora verde */
+    ::-webkit-scrollbar { 
+      width: 8px; 
+      height: 8px; 
+    }
+    ::-webkit-scrollbar-track { 
+      background: #e2e8f0; 
+      border-radius: 9999px; 
+    }
+    ::-webkit-scrollbar-thumb { 
+      background: #86efac; 
+      border-radius: 9999px; 
+    }
+    ::-webkit-scrollbar-thumb:hover { 
+      background: #4ade80; 
+    }
+
+    /* Píldoras de Deporte (WebKit puro sin interferencia de scrollbar-color) */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #e2e8f0;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #86efac;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #4ade80;
+    }
+  </style>
+</head>
+<body class="bg-[#f6faf6] text-slate-800 antialiased min-h-screen flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+
+  <!-- Header limpio y minimalista -->
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-white/90 border-b border-emerald-100 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-lime-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke-width="2"/>
+            <line x1="12" y1="3" x2="12" y2="21" stroke-width="2"/>
+            <circle cx="12" cy="12" r="4" stroke-width="2"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
+            Cancha<span class="text-emerald-600">Verde</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- Botón Favoritas en Cabecera -->
+      <button onclick="toggleFavoritesView()" id="favoritesHeaderBtn" class="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-700 hover:text-rose-600 text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer">
+        <svg id="headerHeartIcon" class="w-4 h-4 text-slate-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+        <span>Favoritas</span>
+        <span id="headerFavBadge" class="hidden px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black leading-none">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Filtros Principales -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-2 w-full">
+    <div class="bg-gradient-to-b from-white to-[#f0fdf4] border border-emerald-100 rounded-3xl p-4 sm:p-6 shadow-sm relative overflow-hidden">
+      
+      <!-- Fila 1: Selector Barrio + Botón GPS -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end relative z-10">
+        <!-- Selector Barrio (con los 48 barrios oficiales de CABA) -->
+        <div class="md:col-span-8">
+          <label class="block text-xs font-bold text-emerald-950 uppercase tracking-wider mb-1.5">
+            Barrio
+          </label>
+          <div class="relative">
+            <select id="zoneSelect" onchange="applyFilters()" class="w-full h-12 bg-white text-slate-800 border border-emerald-200 rounded-2xl px-4 pr-10 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all shadow-sm cursor-pointer appearance-none">
+              <option value="all" selected>Todos los barrios</option>
+              <option value="agronomia">Agronomía</option>
+              <option value="almagro">Almagro</option>
+              <option value="balvanera">Balvanera</option>
+              <option value="barracas">Barracas</option>
+              <option value="belgrano">Belgrano</option>
+              <option value="boedo">Boedo</option>
+              <option value="caballito">Caballito</option>
+              <option value="chacarita">Chacarita</option>
+              <option value="coghlan">Coghlan</option>
+              <option value="colegiales">Colegiales</option>
+              <option value="constitucion">Constitución</option>
+              <option value="flores">Flores</option>
+              <option value="floresta">Floresta</option>
+              <option value="la_boca">La Boca</option>
+              <option value="la_paternal">La Paternal</option>
+              <option value="liniers">Liniers</option>
+              <option value="mataderos">Mataderos</option>
+              <option value="monte_castro">Monte Castro</option>
+              <option value="montserrat">Montserrat</option>
+              <option value="nueva_pompeya">Nueva Pompeya</option>
+              <option value="nunez">Núñez</option>
+              <option value="palermo">Palermo</option>
+              <option value="parque_avellaneda">Parque Avellaneda</option>
+              <option value="parque_chacabuco">Parque Chacabuco</option>
+              <option value="parque_chas">Parque Chas</option>
+              <option value="parque_patricios">Parque Patricios</option>
+              <option value="puerto_madero">Puerto Madero</option>
+              <option value="recoleta">Recoleta</option>
+              <option value="retiro">Retiro</option>
+              <option value="saavedra">Saavedra</option>
+              <option value="san_cristobal">San Cristóbal</option>
+              <option value="san_nicolas">San Nicolás</option>
+              <option value="san_telmo">San Telmo</option>
+              <option value="velez_sarsfield">Vélez Sársfield</option>
+              <option value="versalles">Versalles</option>
+              <option value="villa_crespo">Villa Crespo</option>
+              <option value="villa_del_parque">Villa del Parque</option>
+              <option value="villa_devoto">Villa Devoto</option>
+              <option value="villa_general_mitre">Villa General Mitre</option>
+              <option value="villa_lugano">Villa Lugano</option>
+              <option value="villa_luro">Villa Luro</option>
+              <option value="villa_ortuzar">Villa Ortúzar</option>
+              <option value="villa_pueyrredon">Villa Pueyrredón</option>
+              <option value="villa_real">Villa Real</option>
+              <option value="villa_riachuelo">Villa Riachuelo</option>
+              <option value="villa_santa_rita">Villa Santa Rita</option>
+              <option value="villa_soldati">Villa Soldati</option>
+              <option value="villa_urquiza">Villa Urquiza</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón GPS -->
+        <div class="md:col-span-4">
+          <button onclick="requestRealGPS()" id="gpsBtn" class="w-full h-12 px-4 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 rounded-2xl font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm">
+            <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3" stroke-width="2"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v3m0 14v3M2 12h3m14 0h3"/>
+            </svg>
+            <span id="gpsBtnText">Ordenar por mi GPS</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Fila 2: Filtros de Deporte y Ordenamiento -->
+      <div class="mt-4 pt-3.5 border-t border-emerald-100 flex flex-wrap items-center justify-between gap-3 relative z-10">
+        <!-- Deporte Pills -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-2 max-w-full custom-scrollbar">
+          <button onclick="setSport('all')" data-sport="all" class="sport-btn active px-4 py-1.5 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-sm transition-all whitespace-nowrap">
+            Todas
+          </button>
+          <button onclick="setSport('futbol')" data-sport="futbol" class="sport-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-white text-emerald-900 hover:bg-emerald-50 border border-emerald-200 transition-all whitespace-nowrap">
+            ⚽ Fútbol
+          </button>
+          <button onclick="setSport('padel')" data-sport="padel" class="sport-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-white text-emerald-900 hover:bg-emerald-50 border border-emerald-200 transition-all whitespace-nowrap">
+            🎾 Pádel
+          </button>
+          <button onclick="setSport('tenis')" data-sport="tenis" class="sport-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-white text-emerald-900 hover:bg-emerald-50 border border-emerald-200 transition-all whitespace-nowrap">
+            🎾 Tenis
+          </button>
+        </div>
+
+        <!-- Criterio de Ordenamiento -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Ordenar:</span>
+          <div class="inline-flex rounded-2xl bg-white p-1 border border-emerald-200 shadow-sm">
+            <button onclick="setSort('rating')" id="sortRatingBtn" class="sort-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-sm transition-all flex items-center gap-1.5">
+              <span>⭐ Maps</span>
+            </button>
+            <button onclick="setSort('distance')" id="sortDistanceBtn" class="sort-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-emerald-800 transition-all flex items-center gap-1.5">
+              <span>📍 Cercanía</span>
+            </button>
+            <button onclick="setSort('reviews')" id="sortReviewsBtn" class="sort-btn hidden sm:flex px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-emerald-800 transition-all items-center gap-1">
+              <span>💬 + Reseñas</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contador y Resultados -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-3 w-full flex-1">
+    <!-- Banner de Sección Favoritas -->
+    <div id="favoritesBanner" class="hidden mb-5 p-4 rounded-3xl bg-gradient-to-r from-rose-50 via-white to-pink-50 border border-rose-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-lg shadow-md shadow-rose-500/20">
+          ❤️
+        </div>
+        <div>
+          <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+            Mis Canchas Favoritas
+            <span id="favBannerCount" class="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold border border-rose-200">0</span>
+          </h3>
+          <p class="text-xs text-slate-500">Acceso rápido a las canchas que guardaste en tu dispositivo.</p>
+        </div>
+      </div>
+      <button onclick="toggleFavoritesView(false)" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 self-end sm:self-auto cursor-pointer">
+        <span>✕ Ver todo el catálogo</span>
+      </button>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-extrabold text-slate-900" id="resultsCount">Cargando canchas...</span>
+        <span class="text-xs font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200" id="activeZoneBadge">
+          Todos los barrios
+        </span>
+      </div>
+      <div class="text-xs text-slate-600 flex items-center gap-2" id="locationNotice">
+        <span>📍 Distancias calculadas por GPS</span>
+      </div>
+    </div>
+
+    <!-- Grilla de Tarjetas -->
+    <div id="canchasGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+    <!-- Estado vacío -->
+    <div id="emptyState" class="hidden text-center py-16 px-4 bg-white rounded-3xl border border-emerald-100 shadow-sm">
+      <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center" id="emptyStateIconBox">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <h3 class="text-base font-bold text-slate-800 mb-1" id="emptyStateTitle">No encontramos canchas en este barrio</h3>
+      <p class="text-xs text-slate-500 max-w-sm mx-auto mb-4" id="emptyStateDesc">Puedes seleccionar otro barrio o ver todas las canchas disponibles.</p>
+      <button onclick="resetFilters()" id="emptyStateBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer">
+        Ver todos los barrios
+      </button>
+    </div>
+  </main>
+
+  <!-- Modal Detallado de Cancha -->
+  <div id="venueModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-200">
+    <div id="modalContent" class="bg-white border border-emerald-100 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl transform scale-95 transition-transform duration-200"></div>
+  </div>
+
+
+  <footer class="border-t border-emerald-100 bg-white/70 py-6 mt-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-800">CanchaVerde</span>
+        <span>•</span>
+        <span>Catálogo de Canchas Deportivas</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span>Sincronización continua de Google Maps</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    let CANCHAS = [];
+    let currentSport = 'all';
+    let currentSort = 'rating';
+    let isShowingFavorites = false;
+
+    function getFavorites() {
+      try {
+        return JSON.parse(localStorage.getItem('canchaverde_favorites') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveFavorites(favs) {
+      try {
+        localStorage.setItem('canchaverde_favorites', JSON.stringify(favs));
+      } catch (e) {
+        console.warn('No se pudo guardar en localStorage:', e);
+      }
+      updateFavoritesUI();
+    }
+
+    function toggleFavorite(event, id) {
+      if (event) event.stopPropagation();
+      let favs = getFavorites();
+      if (favs.includes(id)) {
+        favs = favs.filter(item => item !== id);
+      } else {
+        favs.push(id);
+      }
+      saveFavorites(favs);
+      applyFilters();
+
+      const modal = document.getElementById('venueModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        openDetails(id);
+      }
+    }
+
+    function updateFavoritesUI() {
+      const favs = getFavorites();
+      const badge = document.getElementById('headerFavBadge');
+      const icon = document.getElementById('headerHeartIcon');
+      const btn = document.getElementById('favoritesHeaderBtn');
+      const bannerCount = document.getElementById('favBannerCount');
+
+      if (badge) {
+        badge.textContent = favs.length;
+        badge.classList.toggle('hidden', favs.length === 0);
+      }
+
+      if (bannerCount) {
+        bannerCount.textContent = `${favs.length} ${favs.length === 1 ? 'cancha' : 'canchas'}`;
+      }
+
+      if (icon && btn) {
+        if (isShowingFavorites) {
+          btn.className = "flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-rose-500 text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer";
+          icon.className = "w-4 h-4 fill-white text-white";
+        } else {
+          btn.className = "flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-700 hover:text-rose-600 text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer";
+          icon.className = favs.length > 0 ? "w-4 h-4 fill-rose-500 text-rose-500" : "w-4 h-4 text-slate-400";
+        }
+      }
+    }
+
+    function toggleFavoritesView(forceState) {
+      if (typeof forceState === 'boolean') {
+        isShowingFavorites = forceState;
+      } else {
+        isShowingFavorites = !isShowingFavorites;
+      }
+
+      const banner = document.getElementById('favoritesBanner');
+      if (banner) {
+        banner.classList.toggle('hidden', !isShowingFavorites);
+      }
+
+      updateFavoritesUI();
+      applyFilters();
+
+      if (isShowingFavorites) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    let userLocation = {
+      lat: -34.5843,
+      lng: -58.4068,
+      isRealGPS: false,
+      label: "Palermo (Referencia)"
+    };
+
+    function getInitials(name) {
+      if (!name) return "CV";
+      const parts = name.trim().split(/\s+/).filter(p => !["de", "el", "la", "los", "las", "y", "en", "club", "canchas"].includes(p.toLowerCase()));
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return name.slice(0, 2).toUpperCase();
+    }
+
+    function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+      if (!lat1 || !lon1 || !lat2 || !lon2) return 99.0;
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Number((R * c).toFixed(1));
+    }
+
+    function recalculateAllDistances() {
+      CANCHAS.forEach(c => {
+        if (c.lat && c.lng) {
+          c.distanceKm = calculateHaversineDistance(userLocation.lat, userLocation.lng, c.lat, c.lng);
+        }
+      });
+    }
+
+    function requestRealGPS() {
+      const btn = document.getElementById('gpsBtn');
+      const btnText = document.getElementById('gpsBtnText');
+      const notice = document.getElementById('locationNotice');
+
+      if (!navigator.geolocation) {
+        alert("Tu navegador no soporta geolocalización.");
+        return;
+      }
+
+      btnText.textContent = "Obteniendo GPS...";
+      btn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          userLocation.lat = position.coords.latitude;
+          userLocation.lng = position.coords.longitude;
+          userLocation.isRealGPS = true;
+          userLocation.label = "Tu GPS Real";
+
+          recalculateAllDistances();
+          setSort('distance');
+
+          btnText.textContent = "✓ GPS Activo";
+          btn.className = "w-full h-12 px-4 bg-emerald-600 text-white rounded-2xl font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-md";
+          notice.innerHTML = `<span class="text-emerald-700 font-bold">📍 Distancias calculadas desde tu ubicación GPS exacta</span>`;
+          btn.disabled = false;
+          applyFilters();
+        },
+        (error) => {
+          console.warn("GPS error:", error);
+          btnText.textContent = "📍 Ubicación Palermo";
+          btn.disabled = false;
+          userLocation.lat = -34.5880;
+          userLocation.lng = -58.4250;
+          userLocation.label = "Palermo Soho";
+          recalculateAllDistances();
+          setSort('distance');
+          notice.innerHTML = `<span class="text-amber-800">⚠️ Permiso GPS denegado. Ordenando por cercanía a Palermo Soho.</span>`;
+          applyFilters();
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    async function loadCanchasData() {
+      try {
+        let response = await fetch('./data/canchas.json');
+        if (!response.ok) {
+          response = await fetch('../data/canchas.json');
+        }
+        if (response.ok) {
+          CANCHAS = await response.json();
+        }
+      } catch (err) {
+        console.warn('Error al leer canchas.json:', err);
+      }
+
+      recalculateAllDistances();
+      updateFavoritesUI();
+      applyFilters();
+    }
+
+    function setSport(sport) {
+      currentSport = sport;
+      document.querySelectorAll('.sport-btn').forEach(btn => {
+        if (btn.getAttribute('data-sport') === sport) {
+          btn.className = "sport-btn active px-4 py-1.5 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-sm transition-all whitespace-nowrap";
+        } else {
+          btn.className = "sport-btn px-4 py-1.5 rounded-full text-xs font-semibold bg-white text-emerald-900 hover:bg-emerald-50 border border-emerald-200 transition-all whitespace-nowrap";
+        }
+      });
+      applyFilters();
+    }
+
+    function setSort(sortType) {
+      currentSort = sortType;
+      const sortRatingBtn = document.getElementById('sortRatingBtn');
+      const sortDistanceBtn = document.getElementById('sortDistanceBtn');
+      const sortReviewsBtn = document.getElementById('sortReviewsBtn');
+
+      const activeClass = "sort-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-sm transition-all flex items-center gap-1.5";
+      const inactiveClass = "sort-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-emerald-800 transition-all flex items-center gap-1.5";
+
+      sortRatingBtn.className = sortType === 'rating' ? activeClass : inactiveClass;
+      sortDistanceBtn.className = sortType === 'distance' ? activeClass : inactiveClass;
+      if (sortReviewsBtn) sortReviewsBtn.className = sortType === 'reviews' ? activeClass : inactiveClass;
+
+      applyFilters();
+    }
+
+    function resetFilters() {
+      document.getElementById('zoneSelect').value = 'all';
+      setSport('all');
+      setSort('rating');
+    }
+
+    function generateWhatsAppLink(cancha) {
+      if (!cancha || !cancha.whatsapp) return '#';
+      const msg = encodeURIComponent(`¡Hola ${cancha.name}! Vi su predio en CanchaVerde y quería consultar qué turnos y tarifas tienen disponibles para reservar esta semana. ¿Tienen disponibilidad? ¡Muchas gracias!`);
+      return `https://wa.me/${cancha.whatsapp}?text=${msg}`;
+    }
+
+    function applyFilters() {
+      const zone = document.getElementById('zoneSelect').value;
+      const favs = getFavorites();
+
+      let filtered = CANCHAS.filter(c => {
+        // Filtro de Sección Favoritas
+        if (isShowingFavorites && !favs.includes(c.id)) return false;
+
+        // Filtro por Barrio
+        if (zone !== 'all' && c.zone !== zone) return false;
+
+        // Filtro por Deporte
+        if (currentSport !== 'all' && !c.sports.includes(currentSport)) return false;
+
+        return true;
+      });
+
+      if (currentSort === 'rating') {
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.reviewsCount || 0) - (a.reviewsCount || 0));
+      } else if (currentSort === 'distance') {
+        filtered.sort((a, b) => (a.distanceKm || 99) - (b.distanceKm || 99));
+      } else if (currentSort === 'reviews') {
+        filtered.sort((a, b) => (b.reviewsCount || 0) - (a.reviewsCount || 0));
+      }
+
+      renderCanchas(filtered);
+    }
+
+    function renderCanchas(list) {
+      const grid = document.getElementById('canchasGrid');
+      const emptyState = document.getElementById('emptyState');
+      const countEl = document.getElementById('resultsCount');
+      const badgeEl = document.getElementById('activeZoneBadge');
+
+      const zoneSelect = document.getElementById('zoneSelect');
+      const zoneName = zoneSelect.options[zoneSelect.selectedIndex].text;
+
+      if (isShowingFavorites) {
+        badgeEl.textContent = "Mis Favoritas ❤️";
+        badgeEl.className = "text-xs font-semibold text-rose-800 bg-rose-100 px-2.5 py-0.5 rounded-full border border-rose-200";
+        countEl.textContent = `${list.length} ${list.length === 1 ? 'favorita guardada' : 'favoritas guardadas'}`;
+      } else {
+        badgeEl.textContent = zoneName;
+        badgeEl.className = "text-xs font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200";
+        countEl.textContent = `${list.length} ${list.length === 1 ? 'cancha disponible' : 'canchas disponibles'}`;
+      }
+
+      if (list.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        const emptyTitle = document.getElementById('emptyStateTitle');
+        const emptyDesc = document.getElementById('emptyStateDesc');
+        const emptyBtn = document.getElementById('emptyStateBtn');
+        const emptyIconBox = document.getElementById('emptyStateIconBox');
+
+        if (isShowingFavorites) {
+          if (emptyIconBox) {
+            emptyIconBox.className = "w-16 h-16 mx-auto mb-3 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center text-3xl";
+            emptyIconBox.innerHTML = "❤️";
+          }
+          if (emptyTitle) emptyTitle.textContent = "Aún no guardaste canchas favoritas";
+          if (emptyDesc) emptyDesc.textContent = "Hacé clic en el corazón ❤️ de cualquier cancha para guardarla y encontrarla al instante aquí.";
+          if (emptyBtn) {
+            emptyBtn.textContent = "Explorar todas las canchas";
+            emptyBtn.onclick = () => toggleFavoritesView(false);
+          }
+        } else {
+          if (emptyIconBox) {
+            emptyIconBox.className = "w-16 h-16 mx-auto mb-3 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center";
+            emptyIconBox.innerHTML = '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+          }
+          if (emptyTitle) emptyTitle.textContent = "No encontramos canchas en este barrio";
+          if (emptyDesc) emptyDesc.textContent = "Puedes seleccionar otro barrio o ver todas las canchas disponibles.";
+          if (emptyBtn) {
+            emptyBtn.textContent = "Ver todos los barrios";
+            emptyBtn.onclick = resetFilters;
+          }
+        }
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      const favs = getFavorites();
+
+      grid.innerHTML = list.map(c => {
+        const waLink = generateWhatsAppLink(c);
+        const distLabel = c.distanceKm < 1 ? `${Math.round(c.distanceKm * 1000)} m` : `${c.distanceKm} km`;
+        const initials = getInitials(c.name);
+        const isFav = favs.includes(c.id);
+
+        return `
+          <div class="bg-white border border-emerald-100 rounded-3xl overflow-hidden hover:border-emerald-300 hover:shadow-lg transition-all duration-300 flex flex-col group shadow-sm">
+            <div class="relative h-48 w-full overflow-hidden bg-emerald-50 cursor-pointer" onclick="openDetails('${c.id}')">
+              <img src="${c.image}" alt="${c.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=700&auto=format&fit=crop&q=80'"/>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/20"></div>
+
+              <!-- Favorito + Distancia en Vivo -->
+              <div class="absolute top-3 left-3 flex items-center gap-1.5 z-10" onclick="event.stopPropagation()">
+                <button onclick="toggleFavorite(event, '${c.id}')" title="${isFav ? 'Quitar de favoritas' : 'Guardar en favoritas'}" class="w-8 h-8 rounded-full bg-white/95 text-slate-700 hover:text-rose-600 border border-slate-200 shadow-sm flex items-center justify-center transition-all active:scale-90 backdrop-blur-sm cursor-pointer group/fav">
+                  <svg class="w-4 h-4 transition-transform group-hover/fav:scale-110 ${isFav ? 'fill-rose-500 text-rose-500' : 'fill-none text-slate-400 stroke-current'}" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
+                <div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/95 text-slate-800 text-[11px] font-bold border border-emerald-200 shadow-sm backdrop-blur-sm">
+                  <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3" stroke-width="2"/></svg>
+                  <span>a ${distLabel}</span>
+                </div>
+              </div>
+
+              <!-- Puntaje Maps -->
+              <a href="${c.mapsUrl}" target="_blank" rel="noopener" title="Ver perfil en Google Maps" onclick="event.stopPropagation()" class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-slate-900 text-xs font-black shadow-md hover:bg-amber-300 transition-colors">
+                <svg class="w-3.5 h-3.5 fill-current text-slate-900" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <span>${(c.rating || 4.5).toFixed(1)}</span>
+                <span class="text-[10px] font-semibold text-slate-800">(${c.reviewsCount || 0})</span>
+              </a>
+
+              <!-- Pie de foto con Logo y Deporte -->
+              <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-extrabold flex items-center justify-center text-[10px] border border-white/40 shadow-sm backdrop-blur-sm">
+                    ${initials}
+                  </div>
+                  <div class="flex flex-wrap gap-1">
+                    ${(c.sportsLabels || ['Fútbol']).slice(0, 1).map(s => `
+                      <span class="px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-200 font-bold text-[11px] backdrop-blur-sm">${s}</span>
+                    `).join('')}
+                  </div>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-lg font-bold text-[11px] bg-white/90 text-emerald-800 backdrop-blur-sm">
+                  ${c.zoneLabel || 'CABA'}
+                </span>
+              </div>
+            </div>
+
+            <!-- Cuerpo de Tarjeta -->
+            <div class="p-5 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 onclick="openDetails('${c.id}')" class="text-base font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors cursor-pointer line-clamp-1 mb-1">
+                  ${c.name}
+                </h3>
+                <p class="text-xs text-slate-500 flex items-center gap-1.5 mb-2">
+                  <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                  <span class="truncate font-medium">${c.address}</span>
+                </p>
+              </div>
+
+              <!-- Botones de Acción directos -->
+              <div class="pt-3.5 border-t border-emerald-100 mt-2">
+                <div class="grid grid-cols-12 gap-1.5">
+                  <!-- Botón WhatsApp (solo si tiene número verificado) -->
+                  ${c.whatsapp ? `
+                    <a href="${waLink}" target="_blank" rel="noopener" class="${c.instagram ? 'col-span-7' : 'col-span-8'} py-2.5 px-2 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-2xl text-xs font-bold transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1.5 active:scale-95" title="Consultar turno por WhatsApp">
+                      <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2zm5.78 14.12c-.24.68-1.4 1.34-1.93 1.42-.51.08-1.18.11-1.9-.12-.44-.14-1.02-.34-1.76-.66-3.11-1.35-5.14-4.5-5.3-4.71-.15-.21-1.28-1.7-1.28-3.25 0-1.54.81-2.3 1.1-2.6.29-.3.63-.38.84-.38.21 0 .42.01.6.02.19.01.45-.07.7.54.26.63.88 2.15.96 2.31.08.16.13.35.03.56-.1.21-.15.35-.3.53-.15.18-.32.4-.46.54-.15.15-.31.31-.13.62.18.31.8 1.31 1.71 2.13 1.18 1.05 2.17 1.38 2.48 1.53.31.15.49.13.67-.08.18-.21.78-.91.99-1.22.21-.31.42-.26.7-.16.29.1 1.83.86 2.14 1.02.31.15.52.23.6.36.08.13.08.76-.16 1.44z"/></svg>
+                      <span>Turno WPP</span>
+                    </a>
+                  ` : `
+                    <a href="${c.mapsUrl}" target="_blank" rel="noopener" class="${c.instagram ? 'col-span-10' : 'col-span-12'} py-2.5 px-3 bg-slate-900 hover:bg-emerald-800 text-white rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95" title="Ver ubicación en Google Maps">
+                      <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                      <span>Ver en Google Maps</span>
+                    </a>
+                  `}
+
+                  <!-- Botón Instagram (solo si tiene perfil real verificado) -->
+                  ${c.instagram ? `
+                    <a href="${c.instagram}" target="_blank" rel="noopener" class="col-span-2 py-2.5 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white rounded-2xl flex items-center justify-center transition-opacity hover:opacity-90 shadow-sm" title="Instagram oficial verificado">
+                      <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                  ` : ''}
+
+                  <!-- Botón Maps Secundario (si ya tiene WhatsApp) -->
+                  ${c.whatsapp ? `
+                    <a href="${c.mapsUrl}" target="_blank" rel="noopener" class="${c.instagram ? 'col-span-3' : 'col-span-4'} py-2.5 bg-white hover:bg-emerald-50 text-slate-700 border border-emerald-200 rounded-2xl flex items-center justify-center gap-1 transition-colors shadow-sm" title="Ver ubicación en Google Maps">
+                      <svg class="w-4 h-4 text-rose-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                      <span class="text-[11px] font-bold">Maps</span>
+                    </a>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openDetails(canchaId) {
+      const c = CANCHAS.find(item => item.id === canchaId);
+      if (!c) return;
+
+      const modal = document.getElementById('venueModal');
+      const content = document.getElementById('modalContent');
+      const waLink = generateWhatsAppLink(c);
+      const distLabel = c.distanceKm < 1 ? `${Math.round(c.distanceKm * 1000)} metros` : `${c.distanceKm} km`;
+      const initials = getInitials(c.name);
+      const isFav = getFavorites().includes(c.id);
+
+      content.innerHTML = `
+        <div class="relative">
+          <img src="${c.image}" alt="${c.name}" class="w-full h-52 object-cover rounded-t-3xl" onerror="this.src='https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=700&auto=format&fit=crop&q=80'">
+          <!-- Botón Favorito en Modal -->
+          <button onclick="toggleFavorite(event, '${c.id}')" title="${isFav ? 'Quitar de favoritas' : 'Guardar en favoritas'}" class="absolute top-3 left-3 px-3 py-1.5 rounded-full ${isFav ? 'bg-rose-500 text-white shadow-md' : 'bg-white/95 text-slate-700 hover:text-rose-600 border border-slate-200 shadow-sm'} text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer z-10">
+            <svg class="w-4 h-4 ${isFav ? 'fill-white' : 'fill-none stroke-current'}" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <span>${isFav ? 'En Favoritas' : 'Guardar en Favoritas'}</span>
+          </button>
+          <!-- Botón Cerrar -->
+          <button onclick="closeDetails()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors cursor-pointer z-10">✕</button>
+          <div class="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white drop-shadow">
+            <span class="text-xs px-3 py-1 rounded-lg bg-emerald-700 font-bold">${c.zoneLabel}</span>
+            <span class="text-xs font-black px-3 py-1 rounded-lg bg-amber-400 text-slate-900 flex items-center gap-1">
+              ⭐ ${c.rating} (${c.reviewsCount} reseñas Maps)
+            </span>
+          </div>
+        </div>
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white font-extrabold flex items-center justify-center text-sm shadow-md">
+              ${initials}
+            </div>
+            <div>
+              <h2 class="text-xl font-extrabold text-slate-900 leading-tight">${c.name}</h2>
+              <p class="text-xs text-slate-500">📍 ${c.address} • A ${distLabel} de tu posición</p>
+            </div>
+          </div>
+
+          <p class="text-sm text-slate-600 mb-5 leading-relaxed">${c.description}</p>
+          
+          <!-- Canales de Contacto -->
+          <div class="space-y-2 mb-5 p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-emerald-900 font-bold">📞 Teléfono / WhatsApp:</span>
+              <span class="font-semibold text-slate-700">${c.phone ? c.phone : '<span class="text-slate-400 font-normal italic">No publicado en Google Maps</span>'}</span>
+            </div>
+            ${c.email ? `
+              <div class="flex items-center justify-between">
+                <span class="text-emerald-900 font-bold">✉️ Correo electrónico:</span>
+                <a href="mailto:${c.email}" class="font-semibold text-emerald-700 hover:underline">${c.email}</a>
+              </div>
+            ` : ''}
+            ${c.instagram ? `
+              <div class="flex items-center justify-between">
+                <span class="text-emerald-900 font-bold">📸 Instagram oficial:</span>
+                <a href="${c.instagram}" target="_blank" rel="noopener" class="font-semibold text-purple-700 hover:underline">Ver perfil verificado</a>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Botones de Acción -->
+          <div class="grid grid-cols-1 ${c.whatsapp && c.instagram ? 'sm:grid-cols-3' : (c.whatsapp || c.instagram ? 'sm:grid-cols-2' : 'sm:grid-cols-1')} gap-2 pt-4 border-t border-slate-100">
+            ${c.whatsapp ? `
+              <a href="${waLink}" target="_blank" rel="noopener" class="py-3 px-4 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm">
+                💬 Abrir WhatsApp
+              </a>
+            ` : ''}
+            ${c.instagram ? `
+              <a href="${c.instagram}" target="_blank" rel="noopener" class="py-3 px-4 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                📸 Instagram
+              </a>
+            ` : ''}
+            <a href="${c.mapsUrl}" target="_blank" rel="noopener" class="py-3 px-4 ${!c.whatsapp ? 'bg-slate-900 hover:bg-emerald-800 text-white' : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'} rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+              🗺️ Ver en Google Maps
+            </a>
+          </div>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+      }, 10);
+    }
+
+    function closeDetails() {
+      const modal = document.getElementById('venueModal');
+      const content = document.getElementById('modalContent');
+      modal.classList.add('opacity-0');
+      content.classList.remove('scale-100');
+      content.classList.add('scale-95');
+      setTimeout(() => { modal.classList.add('hidden'); }, 200);
+    }
+
+    document.getElementById('venueModal').addEventListener('click', (e) => {
+      if (e.target.id === 'venueModal') closeDetails();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDetails();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadCanchasData();
+    });
+  </script>
+</body>
+</html>
